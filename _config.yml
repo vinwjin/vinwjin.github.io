@@ -1,59 +1,23 @@
-# The Site Configuration
+title: Vinwjin Lab
+description: 折腾记录 & 经验分享 - AI、NAS、技术宅
+theme: jekyll-theme-minima
 
-# Import the theme
-theme: jekyll-theme-chirpy
-
-# Language
-lang: zh
-
-# Timezone
-timezone: Asia/Shanghai
-
-# Title
-title: Vinwjin
-
-tagline: 折腾记录 & 经验分享
-
-description: AI、NAS、技术宅的折腾笔记
-
-# URL
 url: https://vinwjin.github.io
 baseurl: ""
 
-# Author
-github:
-  username: vinwjin
-
-social:
+author:
   name: Vinwjin
   email: vinwjin@github.com
-  links:
-    - https://github.com/vinwjin
 
-# Theme mode
-theme_mode: dark
+github_username: vinwjin
 
-# TOC
-toc: true
-
-# Comments
-comments:
-  provider:
-
-# PWA
-pwa:
-  enabled: true
-  cache:
-    enabled: true
-    deny_paths: []
-
-paginate: 10
-
-# Jekyll plugins
 plugins:
   - jekyll-paginate
-  - jekyll-archives
   - jekyll-seo-tag
+  - jekyll-archives
+
+paginate: 10
+paginate_path: "/page:num/"
 
 jekyll-archives:
   enabled: [categories, tags]
