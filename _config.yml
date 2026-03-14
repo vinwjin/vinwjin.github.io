@@ -4,7 +4,7 @@
 theme: jekyll-theme-chirpy
 
 # Language
-lang: zh-CN
+lang: zh
 
 # Timezone
 timezone: Asia/Shanghai
@@ -21,7 +21,8 @@ url: https://vinwjin.github.io
 baseurl: ""
 
 # Author
-github: vinwjin
+github:
+  username: vinwjin
 
 social:
   name: Vinwjin
@@ -32,13 +33,10 @@ social:
 # Theme mode
 theme_mode: dark
 
-# Paginate
-paginate: 10
-
 # TOC
 toc: true
 
-# Comments (disabled)
+# Comments
 comments:
   provider:
 
@@ -49,14 +47,11 @@ pwa:
     enabled: true
     deny_paths: []
 
-# Exclude
-exclude:
-  - "*.gem"
-  - "*.gemspec"
-  - docs
-  - tools
-  - README.md
-  - LICENSE
+paginate: 10
+
+# Jekyll plugins (required for Chirpy)
+plugins:
+  - jekyll-archives
 
 jekyll-archives:
   enabled: [categories, tags]
