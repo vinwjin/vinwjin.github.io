@@ -49,9 +49,11 @@ pwa:
 
 paginate: 10
 
-# Jekyll plugins (required for Chirpy)
+# Jekyll plugins
 plugins:
+  - jekyll-paginate
   - jekyll-archives
+  - jekyll-seo-tag
 
 jekyll-archives:
   enabled: [categories, tags]
