@@ -1,8 +1,7 @@
 ---
-layout: post
 title: "浏览器 MCP 方案踩坑全记录：Playwriter 主力，Playwright Bridge 备用"
-date: 2026-04-27
-updated: 2026-04-27
+date: 2026-04-27 00:00:00
+updated: 2026-04-27 00:00:00
 categories: [AI, 教程, 浏览器自动化]
 tags: [MCP, Playwriter, Playwright, Edge, Claude Code, Codex]
 toc: true

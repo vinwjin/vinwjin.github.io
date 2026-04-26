@@ -1,12 +1,9 @@
 ---
-layout: post
 title: "OpenClaw 安装配置指南"
-date: 2026-03-11
-updated: 2026-03-11
+date: 2026-03-11 00:00:00
+updated: 2026-03-11 00:00:00
 categories: [AI, 教程]
 tags: [OpenClaw, AI, NAS, Docker]
-image:
-  feature: /assets/img/placeholder.png
 toc: true
 ---
 

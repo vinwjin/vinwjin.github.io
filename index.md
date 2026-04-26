@@ -1,5 +1,4 @@
 ---
-layout: home
 title: Vinwjin Lab
-tagline: 折腾记录 & 经验分享
+date: 2026-03-11 00:00:00
 ---

@@ -1,12 +1,9 @@
 ---
-layout: post
 title: "飞牛NAS 使用初体验"
-date: 2026-03-11
-updated: 2026-03-11
+date: 2026-03-11 00:00:00
+updated: 2026-03-11 00:00:00
 categories: [NAS, 体验]
 tags: [NAS, 飞牛, 私有云]
-image:
-  feature: /assets/img/placeholder.png
 toc: true
 ---
 

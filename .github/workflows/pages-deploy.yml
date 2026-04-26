@@ -1,10 +1,10 @@
 name: "Build and Deploy"
+
 on:
   push:
     branches:
       - main
       - master
-
   workflow_dispatch:
 
 permissions:
@@ -26,23 +26,28 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Ruby
-        uses: ruby/setup-ruby@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          ruby-version: "3.3"
-          bundler-cache: true
+          node-version: '20'
+          cache: 'npm'
 
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
 
-      - name: Build Jekyll
-        run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Hexo
+        run: npx hexo generate
+        env:
+          NODE_ENV: production
 
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: public
 
   deploy:
     environment:

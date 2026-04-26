@@ -1,0 +1,20 @@
+{
+  "name": "vinwjin-blog",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "hexo generate",
+    "clean": "hexo clean",
+    "server": "hexo server",
+    "deploy": "hexo deploy"
+  },
+  "dependencies": {
+    "hexo": "^7.1.0",
+    "hexo-cli": "^4.1.0",
+    "hexo-generator-feed": "^3.0.0",
+    "hexo-generator-sitemap": "^3.0.0",
+    "hexo-renderer-pug": "^3.0.0",
+    "hexo-renderer-stylus": "^3.0.1",
+    "hexo-wordcount": "^6.0.0"
+  }
+}
