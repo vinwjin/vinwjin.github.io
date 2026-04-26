@@ -4,10 +4,6 @@ on:
     branches:
       - main
       - master
-    paths-ignore:
-      - .gitignore
-      - README.md
-      - LICENSE
 
   workflow_dispatch:
 
@@ -29,23 +25,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          submodules: true
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
 
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v4
 
-      - name: Prepare static site
-        run: |
-          rm -rf "_site${{ steps.pages.outputs.base_path }}"
-          mkdir -p "_site${{ steps.pages.outputs.base_path }}"
-          cp index.html "_site${{ steps.pages.outputs.base_path }}/index.html"
-          cp -R posts "_site${{ steps.pages.outputs.base_path }}/posts"
+      - name: Build Jekyll
+        run: bundle exec jekyll build --baseurl "${{ steps.pages.outputs.base_path }}"
 
-      - name: Upload site artifact
+      - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "_site${{ steps.pages.outputs.base_path }}"
+          path: _site
 
   deploy:
     environment:

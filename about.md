@@ -1,9 +1,9 @@
 ---
+layout: page
 title: 关于
-icon: fab fa-github
 ---
 
-## 你好！我是 Vinwjin 🦞
+## 你好！我是 Vinwjin
 
 这是一个用来记录折腾经验和分享教程的地方。
 

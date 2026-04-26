@@ -15,14 +15,6 @@ github_username: vinwjin
 plugins:
   - jekyll-paginate
   - jekyll-seo-tag
-  - jekyll-archives
 
 paginate: 10
 paginate_path: "/page:num/"
-
-jekyll-archives:
-  enabled: [categories, tags]
-  layouts: [archive]
-  permalinks:
-    tag: /tags/:name/
-    category: /categories/:name/
