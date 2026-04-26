@@ -1,5 +1,5 @@
 ---
-layout: article
+layout: post
 title: "飞牛NAS 使用初体验"
 date: 2026-03-11
 updated: 2026-03-11

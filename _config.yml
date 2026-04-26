@@ -4,6 +4,7 @@ theme: jekyll-theme-minima
 
 url: https://vinwjin.github.io
 baseurl: ""
+permalink: /posts/:title/
 
 author:
   name: Vinwjin

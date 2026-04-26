@@ -1,5 +1,5 @@
 ---
-layout: article
+layout: post
 title: "OpenClaw 安装配置指南"
 date: 2026-03-11
 updated: 2026-03-11
