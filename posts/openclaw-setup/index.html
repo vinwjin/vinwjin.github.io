@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OpenClaw 安装配置指南 - Vinwjin Lab</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #243043;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --accent: #1264d1;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 220px);
+      color: var(--text);
+      line-height: 1.75;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 72px; }
+    .crumb, .meta, .footer { color: var(--muted); }
+    .crumb a, .back { color: var(--accent); text-decoration: none; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      box-shadow: 0 14px 40px rgba(18, 100, 209, 0.08);
+      padding: 32px;
+      margin-top: 18px;
+    }
+    h1 { margin: 12px 0 10px; font-size: 2.1rem; line-height: 1.2; }
+    h2 { margin-top: 30px; font-size: 1.35rem; }
+    pre {
+      background: #0f172a;
+      color: #e5eefb;
+      padding: 16px;
+      border-radius: 12px;
+      overflow: auto;
+    }
+    code { font-family: Consolas, monospace; }
+    ul, ol { padding-left: 22px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="crumb"><a href="/">Vinwjin Lab</a> / <a href="/">文章</a> / OpenClaw 安装配置指南</div>
+    <article class="card">
+      <div class="meta">2026-03-11 · AI / 教程</div>
+      <h1>OpenClaw 安装配置指南</h1>
+      <p>这篇文章记录在 NAS 上搭建 OpenClaw 的最小流程，适合先把服务跑起来，再慢慢补渠道和模型配置。</p>
+
+      <h2>环境准备</h2>
+      <ul>
+        <li>NAS 一台，本文示例是飞牛 NAS</li>
+        <li>Docker</li>
+        <li>可用的模型 API Key，例如 OpenAI、MiniMax 等</li>
+      </ul>
+
+      <h2>安装步骤</h2>
+      <ol>
+        <li>在飞牛 NAS 的应用中心安装 Docker。</li>
+        <li>拉取镜像：</li>
+      </ol>
+      <pre><code>docker pull openclaw/openclaw</code></pre>
+      <ol start="3">
+        <li>运行容器：</li>
+      </ol>
+      <pre><code>docker run -d \
+  --name openclaw \
+  -p 8080:8080 \
+  -v ~/.openclaw:/data \
+  openclaw/openclaw</code></pre>
+      <ol start="4">
+        <li>编辑 <code>~/.openclaw/config.yaml</code>，填写 API 与渠道参数。</li>
+      </ol>
+
+      <h2>接入飞书</h2>
+      <ol>
+        <li>创建飞书应用</li>
+        <li>获取 App ID 与 App Secret</li>
+        <li>把参数写入配置文件</li>
+        <li>把机器人加进群聊</li>
+      </ol>
+
+      <p class="footer">有问题可以继续在博客里补更新，这一页现在已经是可直接访问的静态文章。</p>
+      <p><a class="back" href="/">返回首页</a></p>
+    </article>
+  </div>
+</body>
+</html>
