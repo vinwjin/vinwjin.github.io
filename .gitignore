@@ -14,6 +14,12 @@ _site
 # NPM dependencies
 node_modules
 
+# Hexo
+public/
+.db.json/
+.deploy_git/
+themes/butterfly/.git
+
 # IDE configurations
 .idea
 .vscode/*
@@ -24,3 +30,4 @@ node_modules
 # Misc
 _sass/vendors
 assets/js/dist
+.claude/settings.local.json
