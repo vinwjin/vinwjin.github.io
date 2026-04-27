@@ -116,4 +116,9 @@ function patchStylusUtils() {
   hexo.log.info('[fix-stylus] Patched stylus utils for UNC/WSL compatibility');
 }
 
-patchStylusUtils();
+// Only patch on Windows — glob.sync works fine on Linux in CI
+if (process.platform === 'win32') {
+  patchStylusUtils();
+} else {
+  hexo.log.info('[fix-stylus] Skipped — not Windows, glob.sync should work natively');
+}
