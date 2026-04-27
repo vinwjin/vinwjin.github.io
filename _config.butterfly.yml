@@ -195,7 +195,9 @@ google_analytics:
 # Misc
 # --------------------------------------
 mermaid: false
-canvas_ribbon: false
+canvas_ribbon:
+  enable: false
+  alpha: 0.5
 canvas_nest: false
 fireworks: false
 click_heart: false
