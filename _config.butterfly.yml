@@ -62,7 +62,7 @@ footer_bg: false
 # --------------------------------------
 # Home page
 # --------------------------------------
-index_site_info_top: true
+index_site_info_top: 43%
 index_post_content:
   enable: true
   method: 1
