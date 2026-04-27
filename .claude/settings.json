@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wsl -e bash -c \"cd /home/king/projects/vinwjin.github.io && npx hexo clean && npx hexo generate\")",
+      "Bash(wsl -e bash -c \"which node && which npm && which npx && node -v && cd /home/king/projects/vinwjin.github.io && ls node_modules/.bin/hexo 2>/dev/null && ./node_modules/.bin/hexo --version\")",
+      "Bash(wsl -e bash -c \"cd /home/king/projects/vinwjin.github.io && ls node_modules/.bin/hexo && head -1 node_modules/.bin/hexo && node node_modules/.bin/hexo --version\")",
+      "Bash(wsl -e bash -c 'cd /home/king/projects/vinwjin.github.io && bash node_modules/.bin/hexo clean && bash node_modules/.bin/hexo generate')"
+    ]
+  }
+}
