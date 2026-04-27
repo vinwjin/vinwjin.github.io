@@ -4,9 +4,7 @@
 # Navigation Settings
 # --------------------------------------
 nav:
-  logo:
-    enable: true
-    img: /img/butterfly-icon.png
+  logo: /images/logo.svg
   display_title: true
   display_post_title: true
   fixed: false
@@ -38,9 +36,9 @@ social:
 # --------------------------------------
 # Image Settings
 # --------------------------------------
-favicon: /img/favicon.png
+favicon: /images/favicon.svg
 avatar:
-  img: /img/butterfly-icon.png
+  img: /images/logo.svg
   effect: true
 
 disable_top_img: false
@@ -52,11 +50,11 @@ category_img:
 
 cover:
   index_enable: true
-  index_img: /img/cover.jpg
+  index_img: /images/cover.jpg
   archives_enable: true
-  archives_img: /img/cover.jpg
+  archives_img: /images/cover.jpg
 
-background: false
+background: url('/images/cover.jpg')
 footer_bg: false
 
 # --------------------------------------
