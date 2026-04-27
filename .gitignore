@@ -31,3 +31,4 @@ themes/butterfly/.git
 _sass/vendors
 assets/js/dist
 .claude/settings.local.json
+.workbuddy/
