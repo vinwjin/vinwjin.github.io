@@ -1,34 +1,16 @@
-# Bundler cache
-.bundle
-vendor
-Gemfile.lock
-
-# Jekyll cache
-.jekyll-cache
-.jekyll-metadata
-_site
-
-# RubyGems
-*.gem
-
 # NPM dependencies
 node_modules
 
-# Hexo
-public/
-.db.json/
-.deploy_git/
-themes/butterfly/.git
+# Next.js
+.next/
+out/
+public/atom.xml
+public/sitemap.xml
+public/js/search/local-search.json
 
 # IDE configurations
 .idea
-.vscode/*
-!.vscode/settings.json
-!.vscode/extensions.json
-!.vscode/tasks.json
+.vscode
 
 # Misc
-_sass/vendors
-assets/js/dist
-.claude/settings.local.json
-.workbuddy/
+*.log
