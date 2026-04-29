@@ -1,373 +1,304 @@
 ---
-title: "浏览器 MCP 方案踩坑全记录：Playwriter 主力，Playwright Bridge 备用"
+title: "浏览器 Agent 最终方案：Playwriter + browser-harness"
 date: 2026-04-27 00:00:00
-updated: 2026-04-27 00:00:00
+updated: 2026-04-29 00:00:00
 categories: [AI, 教程, 浏览器自动化]
-tags: [MCP, Playwriter, Playwright, Edge, Claude Code, Codex]
+tags: [MCP, Playwriter, browser-harness, Edge, Codex]
 toc: true
 ---
 
-这篇文章记录我在 Windows + Edge 环境下，把浏览器接入 MCP 给 AI Agent 控制时踩过的坑，以及最后跑通后的可用方案。
+这篇文章记录我在 Windows + Edge 环境下，给 AI Agent 接入真实浏览器后的最终整理版。
 
-结论先说：
+现在方案已经收敛为两层：
 
-- **方案一：`browser-mcp`（Playwriter）**
-  - 当前最稳
-  - 可以复用当前已打开标签页和登录态
-  - 适合做主力方案
-- **方案二：官方 `Playwright MCP Bridge`**
-  - 现在已经能用
-  - 但长会话稳定性一般
-  - 更适合作为备用方案
+1. **Playwriter**：作为默认的真实浏览器 MCP 通道。
+2. **browser-harness**：作为 Codex 可直接调用、可持续沉淀 helper 的浏览器执行工具。
 
-## 1. 适用对象
+前面试过的零散桥接、隔离浏览器和稳定性一般的备选路线，这里不再保留。最终目标很明确：让 Agent 能使用我正在用的 Edge、复用登录态，并且在复杂任务里有一条可编程、可扩展、可调试的浏览器手臂。
 
-本文不是只针对某一个客户端写的，而是面向所有支持 MCP 的 Agent 客户端，例如：
-
-- Codex
-- Claude Desktop / Claude Code
-- WorkBuddy
-- Hermes
-- 其他支持 STDIO MCP 或 HTTP MCP 的客户端
-
-只要你的客户端支持以下任一种接法，就可以套用本文：
-
-- **STDIO MCP**
-  - 填写启动命令、参数、环境变量
-- **HTTP MCP**
-  - 填写 `http://127.0.0.1:PORT/mcp`
-
-## 2. 方案概览
-
-| 方案 | 能否复用当前标签页 | 能否复用登录态 | 当前结论 |
-|------|:---:|:---:|------|
-| `browser-mcp`（Playwriter） | ✅ | ✅ | 主力方案 |
-| `@playwright/mcp --isolated` | ❌ | ❌ | 不适合现有登录态场景 |
-| `@playwright/mcp --browser msedge --extension` | ✅ | ✅ | 已打通，但稳定性一般 |
-
-## 3. 方案一：Playwriter + browser-mcp
-
-### 3.1 架构
+## 1. 最终架构
 
 ```text
-AI Agent -> browser-mcp -> Playwriter Relay -> Playwriter 扩展 -> 现有 Edge 标签页
+Codex / AI Agent
+  ├─ MCP 默认通道：Playwriter
+  │    └─ Playwriter Relay -> Playwriter Edge 扩展 -> 当前 Edge Profile
+  │
+  └─ CLI 增强通道：browser-harness
+       └─ CDP -> 当前 Edge Profile -> agent-workspace helpers / domain skills
 ```
 
-核心思路是：
+两条通道的分工不同：
 
-- 不新开浏览器
-- 直接复用你已经打开的 Edge
-- 由扩展把当前标签页暴露给 MCP
+| 通道 | 主要用途 | 特点 |
+|------|------|------|
+| Playwriter | 默认 MCP 浏览器工具 | 适合日常导航、点击、表单、截图、读取页面、复用 Edge 登录态 |
+| browser-harness | Codex 侧高级执行工具 | 适合复杂网页任务、调试 CDP、沉淀站点 helper、直接写 Python 自动化 |
 
-### 3.2 参考链接
+这不是二选一，而是组合拳：
 
-- Playwriter 官网：[playwriter.dev](https://playwriter.dev/)
-- Playwriter GitHub：[remorses/playwriter](https://github.com/remorses/playwriter)
-- Playwriter 扩展页：[Chrome Web Store - Playwriter](https://chromewebstore.google.com/detail/playwriter/amkbmndfnliijdhojkpoglbnaaahippg)
-- browser-mcp 仓库：[nicepkg/playwriter-browser-mcp](https://github.com/nicepkg/playwriter-browser-mcp)
-- 官方 Playwright MCP：[microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)
+- 简单交互走 Playwriter。
+- 复杂流程、需要补 helper、需要长期沉淀站点经验时走 browser-harness。
 
-### 3.3 必要环境
+## 2. 适用场景
 
-至少需要这些前置条件：
+这个组合适合这些任务：
 
-1. 浏览器
-   - Edge / Chrome / Chromium 之一
-   - 本文实测环境是 **Windows + Edge**
+- 复用当前 Edge 登录态操作网页。
+- 让 Codex 读页面、点按钮、填表单、上传文件。
+- 需要在真实浏览器里避开隔离环境造成的登录、风控和扩展问题。
+- 需要把复杂网站的选择器、接口、页面结构沉淀成可复用技能。
+- 需要在一次任务里边探索、边补 helper、边执行。
 
-2. Node.js
-   - 建议 `Node.js 18+`
+本文实测环境：
 
-3. Playwriter 扩展
-   - 必装
-   - 目标标签页需要手动点成绿色激活
+- Windows
+- Microsoft Edge
+- Codex Desktop
+- Playwriter CLI + Playwriter Edge/Chrome 扩展
+- browser-harness
 
-4. Playwriter CLI
-   - 建议安装
-   - 用来启动 relay 和排查环境
+## 3. Playwriter 通道
 
-5. `playwriter-browser-mcp`
-   - 必装
-   - 它才是给 MCP 客户端接入的这一层
-
-### 3.4 安装步骤
-
-#### 3.4.1 安装 Playwriter 扩展
-
-安装扩展后，目标标签页上要手动点一次扩展图标，**图标变绿才算当前页已接管**。
-
-#### 3.4.2 安装 Playwriter CLI
+### 3.1 安装 Playwriter CLI
 
 ```bash
 npm install -g playwriter
 playwriter --version
 ```
 
-#### 3.4.3 安装 browser-mcp
-
-这个项目不是直接一条 `npx` 就完事，最稳的方式是拉源码：
+确认 CLI 可用后，可以查看当前扩展连接的浏览器：
 
 ```bash
-git clone https://github.com/nicepkg/playwriter-browser-mcp.git
-cd playwriter-browser-mcp
-npm install
-npm run build
+playwriter browser list
 ```
 
-构建后要用到：
+在我的环境里，最终识别到的是 Edge profile：
 
 ```text
-dist/stdio.js
-dist/index.js
+profile:b87e8782196ef80c  extension  Edge  vinwjin@hotmail.com
 ```
 
-### 3.5 先启动 Relay
+这个 `profile:...` 是稳定 profile key，后续排障时很有用。
 
-先起 Playwriter relay：
+### 3.2 安装并启用 Playwriter 扩展
+
+安装 Playwriter 浏览器扩展后，在目标 Edge profile 里启用它。
+
+如果要让 Agent 控制当前页面，目标 tab 上的扩展需要处于可连接状态。实际使用时，先用下面命令确认扩展是否已经连上：
 
 ```bash
-playwriter serve --host localhost --replace
+playwriter browser list
 ```
 
-确认 `19988` 端口在监听后，再连 MCP。
+看到 `extension Edge` 这一行，说明 Edge 侧已经接通。
 
-### 3.6 MCP 配置写法
+### 3.3 启动 Relay
 
-#### 3.6.1 STDIO 版 JSON
-
-```json
-{
-  "mcpServers": {
-    "browser-mcp": {
-      "command": "node",
-      "args": ["C:\\Users\\vinwj\\playwriter-browser-mcp\\dist\\stdio.js"],
-      "env": {
-        "PLAYWRITER_RELAY_HOST": "127.0.0.1",
-        "PLAYWRITER_RELAY_PORT": "19988",
-        "PLAYWRITER_EXTENSION_ID": "profile:b87e8782196ef80c"
-      }
-    }
-  }
-}
-```
-
-#### 3.6.2 表单版直接照抄
-
-- 名称：`browser-mcp`
-- 类型：`STDIO`
-- 启动命令：`node`
-- 参数：`C:\Users\vinwj\playwriter-browser-mcp\dist\stdio.js`
-- 环境变量：
-  - `PLAYWRITER_RELAY_HOST=127.0.0.1`
-  - `PLAYWRITER_RELAY_PORT=19988`
-  - `PLAYWRITER_EXTENSION_ID=profile:b87e8782196ef80c`
-- 工作目录：
-  - 推荐填 `C:\Users\vinwj\playwriter-browser-mcp`
-
-#### 3.6.3 HTTP 版
-
-先本地起 HTTP MCP：
+Playwriter 默认使用本地 relay。手动启动方式：
 
 ```bash
-cd C:\Users\vinwj\playwriter-browser-mcp
-set MCP_PORT=3280
-set PLAYWRITER_RELAY_HOST=127.0.0.1
-set PLAYWRITER_RELAY_PORT=19988
-set PLAYWRITER_EXTENSION_ID=profile:b87e8782196ef80c
-node dist/index.js
+playwriter serve --host 127.0.0.1 --replace
 ```
 
-然后在客户端中填：
+如果由 MCP server 拉起，也可以让它自动启动。我的配置里使用 `PLAYWRITER_AUTO_ENABLE=1`，让 Playwriter 在没有页面时自动创建或接入页面。
 
-- 类型：`HTTP MCP` / `流式 HTTP`
-- 地址：`http://127.0.0.1:3280/mcp`
+### 3.4 Codex MCP 配置
 
-### 3.7 `PLAYWRITER_EXTENSION_ID` 最重要的坑
+当前 Codex 配置使用 `playwriter` 作为 MCP server 名称，不再使用容易误导的旧名字。
 
-这里一定要写对。
+`~/.codex/config.toml`：
 
-推荐写法：
+```toml
+[mcp_servers.playwriter]
+type = "stdio"
+command = "playwriter"
 
-```text
-PLAYWRITER_EXTENSION_ID=profile:b87e8782196ef80c
+[mcp_servers.playwriter.env]
+PLAYWRITER_AUTO_ENABLE = "1"
 ```
 
-这是一种 **stable profile key**。
+配置完成后，重启 Codex 会话，让 MCP server 重新加载。
 
-也可以在只有一个活跃扩展时，临时不写 `PLAYWRITER_EXTENSION_ID`，让 relay 自动回退。
+### 3.5 Playwriter 自检
 
-但是不要把 relay `/extensions/status` 返回的瞬时 `extensionId` 直接抄进配置，例如：
-
-```text
-mog5rahs_8it4bv
-```
-
-这种写法会直接报：
-
-```text
-Unknown extensionId: mog5rahs_8it4bv
-```
-
-### 3.8 使用前自检
-
-建议按这个顺序检查：
-
-1. `playwriter --version`
-2. relay 是否在监听 `19988`
-3. 目标标签页的 Playwriter 图标是否已变绿
-4. MCP 客户端里是否写了：
-   - `PLAYWRITER_RELAY_HOST`
-   - `PLAYWRITER_RELAY_PORT`
-   - `PLAYWRITER_EXTENSION_ID`
-5. 如果还不通，先试把 `PLAYWRITER_EXTENSION_ID` 改成稳定的 `profile:...`
-
-### 3.9 实测结果
-
-这次我专门做了：
-
-- 连通性验证
-- 现有标签页复用验证
-- 稳定性循环验证
-- 全功能矩阵验证
-
-#### 3.9.1 连通性
-
-结果：**通过**
-
-- 能枚举现有标签页
-- 能接管当前已打开的 Edge 标签页
-- 能读取 URL / Title / 正文内容
-
-#### 3.9.2 一个容易忽略的新坑：Playwriter 的 ref 用 DOM id
-
-在 Playwriter 这套实现里，很多交互工具的 `ref`，实测可以直接写 DOM `id`：
-
-- `text-input`
-- `select-input`
-- `hover-target`
-- `drag-source`
-- `drop-target`
-
-例如：
-
-```json
-{ "ref": "text-input" }
-```
-
-它不是官方 Bridge 常见的 `e1 / e2 / e3` 那种风格。
-
-#### 3.9.3 功能矩阵
-
-以下能力已经实测通过：
-
-- `browser_tabs list`
-- `browser_tabs new`
-- `browser_tabs select`
-- `browser_tabs close`
-- `browser_navigate`
-- `browser_navigate_back`
-- `browser_snapshot`
-- `browser_take_screenshot`
-- `browser_resize`
-- `browser_wait_for`
-- `browser_evaluate`
-- `browser_run_code`
-- `browser_console_messages`
-- `browser_network_requests`
-- `browser_type`
-- `browser_press_key`
-- `browser_hover`
-- `browser_select_option`
-- `browser_fill_form`
-- `browser_file_upload`
-- `browser_drag`
-- `browser_close`
-
-说明：
-
-- `browser_run_code` 的代码要写成：
-
-```js
-async (page) => ({ title: await page.title(), href: page.url() })
-```
-
-- `browser_console_messages` 必须显式传 `level`，例如：
-
-```json
-{ "level": "info" }
-```
-
-#### 3.9.4 稳定性
-
-在同一会话里连续跑 10 步：
-
-- `tabs`
-- `snapshot`
-- `evaluate`
-- `run_code`
-- `console_messages`
-- `network_requests`
-- 再重复一轮
-
-结果是：
-
-- 固定 `PLAYWRITER_EXTENSION_ID=profile:b87e8782196ef80c`：**10/10 成功**
-- 不写 `PLAYWRITER_EXTENSION_ID`，自动回退：**10/10 成功**
-
-这点明显好于官方 Playwright Bridge。
-
-#### 3.9.5 目前仍不建议当成“绝对稳定能力”的点
-
-- `click + prompt` 这条链路还不够稳
-- `network_requests` 可能混入之前页面遗留请求
-
-但整体上，它已经足够做：
-
-- 点击卡片
-- 点视频
-- 表单填写
-- 上传文件
-- 切 tab
-- 读取页面内容
-- 返回 / 刷新 / 导航
-
-## 4. 方案二：官方 Playwright MCP Bridge
-
-如果你坚持走官方方案，需要：
-
-- 安装官方 Bridge 扩展
-- 使用：
+常用检查命令：
 
 ```bash
-npx @playwright/mcp@latest --browser msedge --extension
+playwriter --version
+playwriter browser list
+playwriter session list
 ```
 
-注意这里 **必须显式带 `--browser msedge`**。  
-只写 `--extension` 时，很多环境下会默认去找 Chrome。
+如果 relay 没有启动，可以手动启动：
 
-### 4.1 参考链接
+```bash
+playwriter serve --host 127.0.0.1 --replace
+```
 
-- 官方仓库：[microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp)
-- 官方扩展说明：[Playwright MCP extension package](https://github.com/microsoft/playwright-mcp/tree/main/packages/extension)
+如果能看到 Edge profile，就说明默认 MCP 通道基本可用。
 
-### 4.2 当前结论
+## 4. browser-harness 通道
 
-官方 Bridge 现在已经不是“不能用”，而是：
+browser-harness 是另一层能力：它不是为了替代 Playwriter MCP，而是给 Codex 一个更自由的浏览器执行环境。
 
-- 已经打通
-- 可以接管当前打开标签页
-- 但长会话稳定性一般
+它的价值在于：
 
-如果你的目标是“尽快稳定上手”，还是建议优先方案一。
+- 通过 CDP 直接控制真实浏览器。
+- 用 Python 代码完成复杂任务。
+- 可以改 `agent-workspace/agent_helpers.py` 补工具函数。
+- 可以在 `agent-workspace/domain-skills/` 里沉淀站点经验。
+- 适合长期给 Agent 积累浏览器自动化能力。
 
-## 5. 最终建议
+### 4.1 安装
 
-如果你想让 AI Agent 稳定接管当前浏览器标签页，我现在的推荐顺序是：
+推荐放在一个稳定目录，然后用 editable tool 安装：
 
-1. **优先用 Playwriter + browser-mcp**
-2. **官方 Bridge 作为备用**
-3. 不建议再把 `--isolated` 当成主力方案
+```bash
+git clone https://github.com/browser-use/browser-harness C:\Users\vinwj\browser-harness
+cd C:\Users\vinwj\browser-harness
+uv tool install -e .
+browser-harness --version
+```
 
-一句话总结：
+安装完成后，`browser-harness` 会成为全局命令。
 
-> 当前 Windows + Edge 场景下，想复用现有标签页和登录态，`browser-mcp（Playwriter）` 是更稳的主力解法。
+### 4.2 注册为 Codex skill
+
+为了让后续 Codex 会话自动知道怎么使用它，把 repo 注册到 Codex skills：
+
+```powershell
+New-Item -ItemType Directory -Force -Path C:\Users\vinwj\.codex\skills | Out-Null
+New-Item -ItemType Junction `
+  -Path C:\Users\vinwj\.codex\skills\browser-harness `
+  -Target C:\Users\vinwj\browser-harness
+```
+
+注册后，新会话会加载：
+
+```text
+C:\Users\vinwj\.codex\skills\browser-harness\SKILL.md
+```
+
+### 4.3 Edge 调试授权
+
+browser-harness 需要通过 CDP 连接真实浏览器。Windows + Edge 下，第一次通常需要在 Edge 里开启调试授权。
+
+在 Edge 打开：
+
+```text
+chrome://inspect/#remote-debugging
+```
+
+或：
+
+```text
+edge://inspect/#remote-debugging
+```
+
+然后勾选页面里的远程调试相关选项，并点击 `Allow`。授权成功后，Edge profile 目录下会出现：
+
+```text
+C:\Users\vinwj\AppData\Local\Microsoft\Edge\User Data\DevToolsActivePort
+```
+
+这个文件出现后，browser-harness 就能发现本地 CDP 端口。
+
+### 4.4 验证 browser-harness
+
+最小验证：
+
+```bash
+browser-harness -c "print(page_info())"
+```
+
+打开新标签并读取页面信息：
+
+```bash
+browser-harness -c "new_tab('https://example.com'); wait_for_load(); print(page_info())"
+```
+
+实测成功返回：
+
+```text
+{'url': 'https://example.com/', 'title': 'Example Domain', ...}
+```
+
+这说明 browser-harness 已经能控制当前 Edge。
+
+## 5. 两条通道怎么配合
+
+我的实际使用习惯是：
+
+1. **默认先走 Playwriter MCP**
+   - 读页面
+   - 点击
+   - 输入
+   - 切 tab
+   - 截图
+   - 简单表单和导航
+
+2. **遇到复杂任务切到 browser-harness**
+   - 页面结构复杂
+   - 需要稳定 selector
+   - 需要监听 CDP / 网络请求
+   - 需要写循环、解析、批处理
+   - 需要沉淀站点经验
+
+3. **把学到的东西沉淀回 browser-harness**
+   - 通用 helper 放进 `agent-workspace/agent_helpers.py`
+   - 站点经验放进 `agent-workspace/domain-skills/<site>/`
+
+这样做的好处是：Playwriter 保持轻快，browser-harness 负责成长。
+
+## 6. 当前最终状态
+
+当前机器上的最终状态：
+
+- Playwriter CLI 已安装。
+- Codex MCP server 已改名为 `playwriter`。
+- 旧的 `browser-mcp` MCP server 配置已删除。
+- Playwriter 能识别 Edge profile。
+- browser-harness 已安装到 `C:\Users\vinwj\browser-harness`。
+- browser-harness 已注册为 Codex skill。
+- Edge 已完成 CDP 调试授权。
+- browser-harness 已实测能打开 `https://example.com/` 并读取页面信息。
+
+## 7. 常见问题
+
+### 7.1 Playwriter 能看到 Edge，但 Codex 里工具还是旧名字
+
+Codex 当前会话不会热重载 MCP server。改完 `~/.codex/config.toml` 后，需要重启 Codex 会话。
+
+### 7.2 browser-harness --doctor 报 Access denied
+
+在 Windows 上，`--doctor` 的进程检查可能会因为权限读不到部分进程信息而报 `Access denied`。
+
+判断是否真正可用，优先看实际命令：
+
+```bash
+browser-harness -c "print(page_info())"
+```
+
+如果这个命令能返回页面信息，就说明浏览器控制链路是通的。
+
+### 7.3 browser-harness 找不到 DevToolsActivePort
+
+说明 Edge 当前 profile 还没有开启 CDP 调试授权。
+
+处理方式：
+
+1. 确认 Edge 正在运行。
+2. 在 Edge 里打开 `chrome://inspect/#remote-debugging`。
+3. 勾选远程调试相关选项。
+4. 点击 `Allow`。
+5. 重新运行：
+
+```bash
+browser-harness -c "print(page_info())"
+```
+
+## 8. 一句话总结
+
+最终方案就是：**Playwriter 作为默认 MCP 浏览器通道，browser-harness 作为 Codex 的高级浏览器执行与技能沉淀通道。**
+
+这套组合在 Windows + Edge 下能复用真实登录态，也能让 Agent 在复杂任务中逐步沉淀自己的浏览器自动化能力。
