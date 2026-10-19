@@ -8,31 +8,6 @@ export default function ScrollEffects() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadBingWallpaper() {
-      try {
-        const response = await fetch("https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=1&mkt=zh-CN", {
-          cache: "no-store"
-        });
-        const data = await response.json();
-        const imageUrl = data?.images?.[0]?.url;
-
-        if (!cancelled && imageUrl) {
-          document.documentElement.style.setProperty("--hero-bg", `url("https://www.bing.com${imageUrl}")`);
-        }
-      } catch {
-        document.documentElement.style.removeProperty("--hero-bg");
-      }
-    }
-
-    loadBingWallpaper();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
     let ticking = false;
 
     function update() {

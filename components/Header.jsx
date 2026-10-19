@@ -11,8 +11,7 @@ export default function Header({ onSearch }) {
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
-    const preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    const nextTheme = saved || preferred;
+    const nextTheme = saved || "light";
     document.documentElement.dataset.theme = nextTheme;
   }, []);
 
