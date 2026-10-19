@@ -1,27 +1,12 @@
-import CodeCopy from "@/components/CodeCopy";
-import TableOfContents from "@/components/TableOfContents";
-import { getPage, renderMarkdown } from "@/lib/content";
-
-export const metadata = {
-  title: "关于",
-  description: "关于 Vinwjin 和 Vinwjin Lab"
-};
-
-export default async function AboutPage() {
-  const page = getPage("about");
-  const html = await renderMarkdown(page.content);
-
-  return (
-    <main className="article-shell">
-      <article className="article">
-        <header className="article-header">
-          <h1>{page.title}</h1>
-        </header>
-        <div className="prose" dangerouslySetInnerHTML={{ __html: html }} />
-        <CodeCopy />
-      </article>
-      <TableOfContents headings={page.headings} />
-    </main>
-  );
+import Link from "next/link";
+import { ArrowUpRight,Code2,Cpu,Server,Box,Terminal } from "lucide-react";
+import { getAllPosts,getAllTags } from "@/lib/content";
+export const metadata={title:"关于我",description:"我是 Vinwjin，一个在 AI、NAS 和自动化之间持续探索的技术爱好者。",alternates:{canonical:"/about/"}};
+export default function AboutPage(){
+  const posts=getAllPosts({includeHidden:false});
+  return <main className="inner-page about-page"><header className="about-hero"><div><p className="micro-label"><span className="orange-line"/>THE PERSON BEHIND THE LAB</p><h1>一个热爱技术的<br/>折腾者<span className="orange-dot">.</span></h1><p>你好，我是 <strong>Vinwjin</strong>。<br/>我喜欢把「这能不能做到」变成「原来还可以这样」。</p><a href="https://github.com/vinwjin" target="_blank" rel="noreferrer" className="solid-button">在 GitHub 找到我 <ArrowUpRight size={17}/></a></div><div className="profile-block"><span className="profile-top">VINWJIN / PERSONAL PROFILE</span><span className="profile-monogram">v<span>_</span></span><div className="profile-bottom"><span className="status-dot"/>Curiosity, always.</div><span className="profile-cross">+</span></div></header>
+    <section className="about-story"><p className="micro-label">01 / WHY THIS LAB EXISTS</p><div><h2>给折腾，留一个地方。</h2><p>AI 工具、家里的 NAS、容器和自动化脚本，都是我愿意花时间尝试的东西。有些用来解决实际问题，有些只是因为好奇。</p><p>这个实验室记录过程和经验：为什么选择一个工具，怎样把它配置起来，以及真正用起来之后的感受。把走过的路写下来，也希望能帮到遇到同样问题的人。</p><blockquote>折腾，是最好的学习方式。</blockquote></div></section>
+    <section className="about-stack"><div className="section-top"><div><p className="micro-label">02 / MY TOOLBOX</p><h2>我的工具箱</h2></div><p>在实践里认识工具，也在工具里发现可能。</p></div><div className="toolbox-grid">{[{Icon:Code2,title:"编程与脚本",tools:"Python · JavaScript · Shell",desc:"把想法写成可以运行的东西。"},{Icon:Cpu,title:"AI 与自动化",tools:"Claude · ChatGPT · OpenClaw",desc:"尝试智能助手与工作流的协作。"},{Icon:Server,title:"个人基础设施",tools:"飞牛 NAS · 私有云",desc:"给数据和服务一个自己的空间。"},{Icon:Box,title:"容器与部署",tools:"Docker",desc:"从环境配置开始，把服务跑起来。"}].map(({Icon,title,tools,desc})=><article key={title}><Icon size={25} strokeWidth={1.4}/><h3>{title}</h3><p>{tools}</p><small>{desc}</small></article>)}</div></section>
+    <section className="lab-in-numbers"><div><Terminal size={25}/><h2>数字花园，正在生长</h2></div><dl><div><dt>开始记录</dt><dd>2026</dd></div><div><dt>公开笔记</dt><dd>{String(posts.length).padStart(2,"0")}</dd></div><div><dt>兴趣关键词</dt><dd>{String(getAllTags().length).padStart(2,"0")}</dd></div></dl><Link href="/archives/" className="text-link">去笔记里逛逛 <ArrowUpRight size={17}/></Link></section>
+  </main>;
 }
-

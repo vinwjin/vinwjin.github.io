@@ -1,33 +1,20 @@
 "use client";
-
-import { useEffect } from "react";
-
-export default function CodeCopy() {
-  useEffect(() => {
-    const blocks = document.querySelectorAll("pre");
-    const cleanups = [];
-
-    blocks.forEach((block) => {
-      if (block.querySelector(".copy-code")) return;
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "copy-code";
-      button.textContent = "复制";
-      const onClick = async () => {
-        await navigator.clipboard.writeText(block.innerText.replace(/^复制\n/, ""));
-        button.textContent = "已复制";
-        window.setTimeout(() => {
-          button.textContent = "复制";
-        }, 1200);
+import {useEffect} from "react";
+export default function CodeCopy(){
+  useEffect(()=>{
+    const cleanups=[];
+    document.querySelectorAll(".prose pre").forEach(block=>{
+      const button=document.createElement("button");let timer;
+      button.type="button";button.className="copy-code";button.textContent="复制";button.setAttribute("aria-label","复制代码");
+      const copy=async()=>{
+        try{await navigator.clipboard.writeText(block.querySelector("code")?.textContent||"");button.textContent="已复制";}
+        catch{button.textContent="复制失败";}
+        clearTimeout(timer);timer=setTimeout(()=>{button.textContent="复制";},1500);
       };
-      button.addEventListener("click", onClick);
-      block.appendChild(button);
-      cleanups.push(() => button.removeEventListener("click", onClick));
+      button.addEventListener("click",copy);block.appendChild(button);
+      cleanups.push(()=>{button.removeEventListener("click",copy);button.remove();clearTimeout(timer);});
     });
-
-    return () => cleanups.forEach((cleanup) => cleanup());
-  }, []);
-
+    return ()=>cleanups.forEach(fn=>fn());
+  },[]);
   return null;
 }
-

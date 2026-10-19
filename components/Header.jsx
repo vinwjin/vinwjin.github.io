@@ -1,52 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Github, Moon, Search, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
-import { site } from "@/lib/site";
+
+const navigation = [
+  { href: "/", label: "首页" },
+  { href: "/archives/", label: "探索笔记" },
+  { href: "/categories/", label: "专题" },
+  { href: "/tags/", label: "标签索引" },
+  { href: "/about/", label: "关于我" }
+];
 
 export default function Header({ onSearch }) {
+  const pathname = usePathname();
   const [theme, setTheme] = useState("light");
-
   useEffect(() => {
-    const saved = localStorage.getItem("theme");
-    const nextTheme = saved || "light";
-    document.documentElement.dataset.theme = nextTheme;
+    const current = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+    setTheme(current);
   }, []);
-
   function toggleTheme() {
-    const currentTheme = document.documentElement.dataset.theme || theme;
-    const nextTheme = currentTheme === "dark" ? "light" : "dark";
-    setTheme(nextTheme);
-    localStorage.setItem("theme", nextTheme);
-    document.documentElement.dataset.theme = nextTheme;
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem("theme", next); } catch {}
   }
-
-  return (
-    <header className="site-header">
-      <Link href="/" className="brand" aria-label="Vinwjin Lab 首页">
-        <Image src="/images/logo.svg" alt="" width={34} height={34} priority />
-        <span>{site.title}</span>
-      </Link>
-      <nav className="nav-links" aria-label="主导航">
-        {site.nav.map((item) => (
-          <Link key={item.href} href={item.href}>
-            {item.label}
-          </Link>
-        ))}
-      </nav>
+  return <header className="header-wrap">
+    <a className="skip-link" href="#main-content">跳到正文</a>
+    <div className="site-header">
+      <Link href="/" className="brand" aria-label="Vinwjin Lab 首页"><span className="brand-mark">v_</span><span>Vinwjin<span className="brand-light"> Lab</span><small>PERSONAL DIGITAL GARDEN</small></span></Link>
+      <nav className="nav-links" aria-label="主导航">{navigation.map(({href,label})=>{
+        const active=href==="/"?pathname==="/":href==="/archives/"?(pathname.startsWith("/archives")||pathname.startsWith("/posts")):pathname.startsWith(href.slice(0,-1));
+        return <Link key={href} href={href} aria-current={active?"page":undefined}>{label}</Link>;
+      })}</nav>
       <div className="header-actions">
-        <button className="icon-button" type="button" onClick={onSearch} aria-label="搜索">
-          <Search size={18} />
-        </button>
-        <button className="icon-button" type="button" onClick={toggleTheme} aria-label="切换暗色模式">
-          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
-        <a className="icon-button" href={site.github} aria-label="GitHub" target="_blank" rel="noreferrer">
-          <Github size={18} />
-        </a>
+        <button className="search-trigger" type="button" onClick={onSearch} aria-label="搜索"><Search size={16}/><span>搜索</span><kbd>⌘ K</kbd></button>
+        <button className="icon-button" type="button" onClick={toggleTheme} aria-label="切换深浅色" aria-pressed={theme==="dark"}>{theme==="dark"?<Sun size={17}/>:<Moon size={17}/>}</button>
+        <a className="icon-button github-header" href="https://github.com/vinwjin" target="_blank" rel="noreferrer" aria-label="GitHub"><Github size={17}/></a>
       </div>
-    </header>
-  );
+    </div>
+  </header>;
 }

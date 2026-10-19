@@ -1,34 +1,11 @@
-import Link from "next/link";
-import { formatDate, getArchiveGroups } from "@/lib/content";
+import PageIntro from "@/components/PageIntro";
+import NotesExplorer from "@/components/NotesExplorer";
+import { getAllPosts } from "@/lib/content";
+import { noteSummary } from "@/lib/presentation";
 
-export const metadata = {
-  title: "归档",
-  description: "Vinwjin Lab 的文章归档"
-};
-
-export default function ArchivesPage() {
-  const groups = getArchiveGroups();
-
-  return (
-    <main className="page-shell narrow">
-      <header className="page-header">
-        <h1>归档</h1>
-        <p>{groups.reduce((sum, [, posts]) => sum + posts.length, 0)} 篇公开文章</p>
-      </header>
-      <div className="timeline">
-        {groups.map(([year, posts]) => (
-          <section key={year}>
-            <h2>{year}</h2>
-            {posts.map((post) => (
-              <Link key={post.slug} href={`/posts/${post.slug}/`} className="timeline-item">
-                <time>{formatDate(post.date, { month: "2-digit", day: "2-digit" })}</time>
-                <span>{post.title}</span>
-              </Link>
-            ))}
-          </section>
-        ))}
-      </div>
-    </main>
-  );
+export const metadata={title:"探索笔记",description:"按时间与主题浏览 Vinwjin 的 AI、NAS 和自动化实践记录。",alternates:{canonical:"/archives/"}};
+export default function ArchivesPage(){
+  const posts=getAllPosts({includeHidden:false});
+  const summaries=posts.map(({slug,title,date,categories,tags,...p})=>({slug,title,date,categories,tags,description:noteSummary({...p,slug})}));
+  return <main className="inner-page"><PageIntro eyebrow="FIELD NOTES / ALL ENTRIES" title="把探索，写成笔记" description="问题、尝试与解决过程，都留在这里。按时间回看，也按兴趣继续发现。" count={posts.length}/><NotesExplorer posts={summaries}/><div className="page-end"><span className="status-dot"/>探索仍在继续，笔记慢慢生长。</div></main>;
 }
-
